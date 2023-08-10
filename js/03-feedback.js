@@ -1,54 +1,24 @@
-import throttle from 'lodash.throttle';
+import  throttle  from 'lodash.throttle';
 
-const STORAGE_KEY = 'feedback-form-state';
 const form = document.querySelector('.feedback-form');
-// const textarea = document.querySelector('.feedback-form textarea');
+const key = "feedback-form-state";
+const feedback = JSON.parse(localStorage.getItem(key)) || {email: '', message: ''};
+form.email.value = feedback.email;
+form.message.value = feedback.message;
 
-form.addEventListener('submit', formSubmit);
-// textarea.addEventListener('input', inputTextarea);
+form.addEventListener('input', throttle(onInput, 500));
+form.addEventListener('submit', onSubmit);
 
-const formObj = {};
-
-initForm();
-
-// prevent default
-function formSubmit(event) {
-  event.preventDefault();
-  const formData = new FormData(form);
-  formData.forEach((value, name) => console.log(value, name));
-
-  event.target.reset();
-  localStorage.removeItem('feedback-form-state');
-
-  console.log(formObj);
+function onInput (){
+   feedback.email = form.email.value;
+   feedback.message = form.message.value;
+   localStorage.setItem(key, JSON.stringify(feedback))
 }
 
-form.addEventListener('input', throttle(onInputForm, 500));
-
-function onInputForm(event) {
-  formObj[event.target.name] = event.target.value;
-
-  const stringifiedData = JSON.stringify(formObj);
-  localStorage.setItem('feedback-form-state', stringifiedData);
+function onSubmit(ev){
+   ev.preventDefault();
+   console.dir(feedback);
+   localStorage.removeItem(key);
+   form.email.value = '';
+   form.message.value = '';
 }
-
-// when loading the page, checking localstorage for values, if data is present
-function initForm() {
-  let savedForm = localStorage.getItem('feedback-form-state');
-  if (savedForm) {
-    savedForm = JSON.parse(savedForm);
-    Object.entries(savedForm).forEach(([name, value]) => {
-      formObj[name] = value;
-      form.elements[name].value = value;
-    });
-  }
-}
-
-// -------------------------------------------------------------------------------
-
-// form.addEventListener('input', event => {
-//   formObj[event.target.name] = event.target.value;
-
-//   const stringifiedData = JSON.stringify(formObj);
-//   localStorage.setItem('feedback-form-state', stringifiedData);
-// });
